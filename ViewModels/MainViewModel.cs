@@ -45,6 +45,7 @@ public sealed class MainViewModel : ViewModelBase
         _ = _notif.StartAsync();
 
         Timer.Finished += OnTimerFinished;
+        SettingsService.Changed += RaiseHomeBackdrop;
     }
 
     /// <summary>Raised when the islet should show a short "peek" summary.</summary>
@@ -187,6 +188,7 @@ public sealed class MainViewModel : ViewModelBase
         })
             OnPropertyChanged(name);
         RaiseProgress();
+        if (HomeCfg.Background == HomeBackgroundKind.MusicCover) RaiseHomeBackdrop();
 
         bool newSong = track is not null && track.IsPlaying &&
                        (previous is null || previous.Title != track.Title || previous.Artist != track.Artist);
@@ -347,7 +349,9 @@ public sealed class MainViewModel : ViewModelBase
         get => _homeWallpaper;
         private set
         {
-            if (Set(ref _homeWallpaper, value)) OnPropertyChanged(nameof(HasHomeWallpaper));
+            if (!Set(ref _homeWallpaper, value)) return;
+            OnPropertyChanged(nameof(HasHomeWallpaper));
+            RaiseHomeBackdrop();
         }
     }
 
@@ -372,6 +376,79 @@ public sealed class MainViewModel : ViewModelBase
     {
         WallpaperService.Clear();
         HomeWallpaper = null;
+    }
+
+    // ---- Home page backdrop (driven by Settings → 首頁) ---------------------
+
+    private static HomeSettings HomeCfg => SettingsService.Current.Home;
+
+    /// <summary>What fills the islet behind the home page, or null for nothing (plain islet).</summary>
+    public Brush? HomeBackdropBrush
+    {
+        get
+        {
+            switch (HomeCfg.Background)
+            {
+                case HomeBackgroundKind.Color:
+                    var color = SettingsViewModel.TryParseColor(HomeCfg.Color) ?? Colors.Black;
+                    return MakeBrush(color);
+
+                case HomeBackgroundKind.MusicCover:
+                    return _track?.Cover is { } cover ? MakeImageBrush(cover, HomeImageFit.Fill) : null;
+
+                default:
+                    return _homeWallpaper is { } img ? MakeImageBrush(img, HomeCfg.Fit) : null;
+            }
+        }
+    }
+
+    public bool HasHomeBackdrop => HomeBackdropBrush is not null;
+
+    /// <summary>The home page has nothing to show yet: display a hint instead.</summary>
+    public bool HomeShowHint => !HasHomeBackdrop;
+
+    /// <summary>Clicking the hint opens the picture picker (only in picture mode).</summary>
+    public bool HomeHintClickable => HomeCfg.Background == HomeBackgroundKind.Image;
+
+    public string HomeHintText => HomeCfg.Background == HomeBackgroundKind.MusicCover
+        ? "播放音樂時會顯示封面"
+        : "點一下選擇首頁圖片";
+
+    public string HomeHintGlyph => HomeCfg.Background == HomeBackgroundKind.MusicCover ? "\uE8D6" : "\uE91B";
+
+    public double HomeDimOpacity => HomeCfg.Dim / 100.0;
+    public double HomeBlurRadius => HomeCfg.Blur;
+
+    /// <summary>Blurring softens the picture's edges into transparency; grow it past the islet so the
+    /// rounded clip cuts off the soft edge.</summary>
+    public System.Windows.Thickness HomeBlurMargin => new(-HomeCfg.Blur * 1.5);
+
+    private void RaiseHomeBackdrop()
+    {
+        foreach (var name in new[]
+        {
+            nameof(HomeBackdropBrush), nameof(HasHomeBackdrop), nameof(HomeShowHint), nameof(HomeHintClickable),
+            nameof(HomeHintText), nameof(HomeHintGlyph), nameof(HomeDimOpacity), nameof(HomeBlurRadius),
+            nameof(HomeBlurMargin),
+        })
+            OnPropertyChanged(name);
+    }
+
+    private static ImageBrush MakeImageBrush(ImageSource image, HomeImageFit fit)
+    {
+        var brush = new ImageBrush(image)
+        {
+            Stretch = fit switch
+            {
+                HomeImageFit.Fit => Stretch.Uniform,
+                HomeImageFit.Stretch => Stretch.Fill,
+                _ => Stretch.UniformToFill,
+            },
+            AlignmentX = AlignmentX.Center,
+            AlignmentY = AlignmentY.Center,
+        };
+        brush.Freeze();
+        return brush;
     }
 
     // ---- Timer page --------------------------------------------------------

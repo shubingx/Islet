@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Islet.Models;
+using Islet.Services;
 using Islet.ViewModels;
 
 namespace Islet.Shell;
@@ -51,10 +52,12 @@ public partial class IsletWindow : Window
     private bool _clickThrough;
     private IntPtr _hwnd;
     private bool _menuOpen;
+    private SettingsWindow? _settingsWindow;
 
     // Paging
     private FrameworkElement[] _pages = Array.Empty<FrameworkElement>();
     private RadioButton[] _dots = Array.Empty<RadioButton>();
+    private string[] _pageIds = Array.Empty<string>();
     private int _pageIndex = -1;
     private int _wheelAccum;
     private long _lastWheelTick;
@@ -93,9 +96,8 @@ public partial class IsletWindow : Window
 
         ApplyIsletSize(idle.W, idle.H, idle.R);
         ApplyWindowSize(IsletState.Idle);
-        _pages = new FrameworkElement[] { PageHome, PageMusic, PageNotif, PageTodo, PageTimer, PagePerf };
-        _dots = new[] { TabHome, TabMusic, TabNotif, TabTodo, TabTimer, TabPerf };
-        ShowPage(0);
+        ApplySettings();
+        SettingsService.Changed += ApplySettings;
         UpdateEqualizer();
 
         _hoverPoll.Tick += (_, _) => HoverPoll();
@@ -154,6 +156,14 @@ public partial class IsletWindow : Window
         _spring.Stiffness = growing ? GrowStiffness : ShrinkStiffness;
         _spring.Damping = growing ? GrowDamping : ShrinkDamping;
         _spring.SetTarget(w, h, r);
+
+        if (next == IsletState.Expanded && previous != IsletState.Expanded &&
+            SettingsService.Current.General.ResetPageOnExpand && _pageIndex != 0)
+        {
+            _pageIndex = -1;   // jump straight to the first page, no slide
+            ShowPage(0);
+        }
+
         UpdateLayers(next);
         UpdatePerfSampling();
     }
@@ -338,6 +348,10 @@ public partial class IsletWindow : Window
 
         switch (tag)
         {
+            case "settings":
+                // Let the menu close first.
+                Dispatcher.BeginInvoke(new Action(OpenSettings));
+                break;
             case "dnd":
                 _vm.IsDnd = item.IsChecked;
                 break;
@@ -361,12 +375,85 @@ public partial class IsletWindow : Window
         }
     }
 
+    // ---- Settings ----------------------------------------------------------
+
+    private void Settings_Click(object sender, RoutedEventArgs e) => OpenSettings();
+
+    /// <summary>Opens the settings window, or brings it to the front if it's already open.</summary>
+    private void OpenSettings()
+    {
+        if (_settingsWindow is null)
+        {
+            _settingsWindow = new SettingsWindow(_vm);
+            _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+            _settingsWindow.Show();
+        }
+
+        if (_settingsWindow.WindowState == WindowState.Minimized) _settingsWindow.WindowState = WindowState.Normal;
+        _settingsWindow.Activate();
+    }
+
+    /// <summary>Applies settings that live in the window: hover/collapse delays and the page list.
+    /// Runs at start-up and again whenever something changes in the settings window.</summary>
+    private void ApplySettings()
+    {
+        var general = SettingsService.Current.General;
+        _hoverTimer.Interval = TimeSpan.FromMilliseconds(Math.Max(1, general.HoverDelayMs));
+        _collapseTimer.Interval = TimeSpan.FromMilliseconds(Math.Max(1, general.CollapseDelayMs));
+        ApplyPages();
+    }
+
+    /// <summary>Shows only the enabled pages, in the order chosen in Settings → 分頁.
+    /// Stays on the page that was showing if it's still there.</summary>
+    private void ApplyPages()
+    {
+        var all = new Dictionary<string, (FrameworkElement Page, RadioButton Dot)>
+        {
+            ["home"] = (PageHome, TabHome),
+            ["music"] = (PageMusic, TabMusic),
+            ["notif"] = (PageNotif, TabNotif),
+            ["todo"] = (PageTodo, TabTodo),
+            ["timer"] = (PageTimer, TabTimer),
+            ["perf"] = (PagePerf, TabPerf),
+        };
+
+        var ids = SettingsService.Current.Pages
+            .Where(p => p.Enabled && all.ContainsKey(p.Id))
+            .Select(p => p.Id)
+            .ToArray();
+        if (ids.Length == 0) ids = new[] { "home" };
+        if (ids.SequenceEqual(_pageIds)) return;   // something else changed (e.g. a slider); leave the pages alone
+
+        string? current = _pageIndex >= 0 && _pageIndex < _pageIds.Length ? _pageIds[_pageIndex] : null;
+
+        _pageIds = ids;
+        _pages = ids.Select(id => all[id].Page).ToArray();
+        _dots = ids.Select(id => all[id].Dot).ToArray();
+
+        foreach (var (page, dot) in all.Values)
+        {
+            page.Visibility = Visibility.Collapsed;
+            dot.IsChecked = false;
+        }
+
+        DotsPanel.Children.Clear();
+        for (int i = 0; i < _dots.Length; i++)
+        {
+            _dots[i].Tag = i.ToString();
+            DotsPanel.Children.Add(_dots[i]);
+        }
+        DotsPanel.Visibility = _dots.Length > 1 ? Visibility.Visible : Visibility.Hidden;
+
+        _pageIndex = -1;
+        ShowPage(current is null ? 0 : Math.Max(0, Array.IndexOf(_pageIds, current)));
+    }
+
     // ---- Home wallpaper ----------------------------------------------------
 
     private void HomeWallpaper_Click(object sender, MouseButtonEventArgs e)
     {
-        // With a picture set, a plain click does nothing; change it from the right-click menu.
-        if (_vm.HasHomeWallpaper) return;
+        // Only the "pick a picture" hint is clickable; otherwise change it in Settings or the right-click menu.
+        if (!_vm.HomeShowHint || !_vm.HomeHintClickable) return;
         e.Handled = true;
         PickHomeWallpaper();
     }

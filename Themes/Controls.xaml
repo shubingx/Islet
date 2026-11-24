@@ -204,4 +204,92 @@
         </Setter>
     </Style>
 
+    <!-- ===== Right-click menu on the islet: dark, rounded, icon column ===== -->
+
+    <!-- Menu entry. The icon is a Segoe Fluent glyph string in MenuItem.Icon; a checked entry shows a tick
+         instead. Sub-menus aren't supported by this template (the islet menu is flat on purpose). -->
+    <Style x:Key="IsletMenuItem" TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource Text.Primary}"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Bd" CornerRadius="6" Padding="8,6,16,6" Margin="0,1" Background="Transparent">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="28"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter x:Name="IconHost" ContentSource="Icon" VerticalAlignment="Center"
+                                              TextElement.FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                              TextElement.FontSize="14"
+                                              TextElement.Foreground="{DynamicResource Text.Secondary}"/>
+                            <TextBlock x:Name="Tick" Text="&#xE73E;" Visibility="Collapsed" VerticalAlignment="Center"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="13"
+                                       Foreground="{DynamicResource Accent.Default}"/>
+                            <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True"
+                                              VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Surface.Hover}"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="IconHost" Property="Visibility" Value="Hidden"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Small grey group label inside the menu ("模式"). Not clickable. -->
+    <Style x:Key="IsletMenuCaption" TargetType="MenuItem">
+        <Setter Property="IsHitTestVisible" Value="False"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <TextBlock Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}}" Margin="10,6,10,2" FontSize="11"
+                               Foreground="{DynamicResource Text.Secondary}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="IsletContextMenu" TargetType="ContextMenu">
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, Microsoft JhengHei UI, Microsoft JhengHei"/>
+        <Setter Property="HasDropShadow" Value="True"/>
+        <Setter Property="MinWidth" Value="190"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource IsletMenuItem}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border CornerRadius="10" Padding="4" BorderThickness="1"
+                            Background="#F21C1C1C" BorderBrush="#26FFFFFF">
+                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Resources>
+            <!-- Separators inside menus are looked up by this key, not by type. -->
+            <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Separator">
+                            <Border Height="1" Margin="8,4" Background="#1FFFFFFF"/>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Style.Resources>
+    </Style>
+
 </ResourceDictionary>

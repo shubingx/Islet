@@ -24,19 +24,22 @@
               PreviewMouseWheel="Islet_MouseWheel">
 
             <Grid.ContextMenu>
-                <ContextMenu Opened="Menu_Opened" Closed="Menu_Closed" MenuItem.Click="Menu_Click">
-                    <MenuItem Header="勿擾" Tag="dnd" IsCheckable="True"/>
-                    <MenuItem Header="固定展開" Tag="pin" IsCheckable="True"/>
-                    <MenuItem Header="模式">
-                        <MenuItem Header="一般" Tag="mode:一般" IsCheckable="True"/>
-                        <MenuItem Header="專注" Tag="mode:專注" IsCheckable="True"/>
-                        <MenuItem Header="自訂" Tag="mode:自訂" IsCheckable="True"/>
-                    </MenuItem>
+                <ContextMenu Style="{StaticResource IsletContextMenu}"
+                             Opened="Menu_Opened" Closed="Menu_Closed" MenuItem.Click="Menu_Click">
+                    <MenuItem Header="設定…" Tag="settings" Icon="&#xE713;"/>
                     <Separator/>
-                    <MenuItem Header="更換首頁圖片…" Tag="wallpaper:set"/>
-                    <MenuItem Header="移除首頁圖片" Tag="wallpaper:clear"/>
+                    <MenuItem Header="勿擾" Tag="dnd" IsCheckable="True" Icon="&#xE708;"/>
+                    <MenuItem Header="固定展開" Tag="pin" IsCheckable="True" Icon="&#xE718;"/>
                     <Separator/>
-                    <MenuItem Header="結束" Tag="exit"/>
+                    <MenuItem Header="模式" Style="{StaticResource IsletMenuCaption}"/>
+                    <MenuItem Header="一般" Tag="mode:一般" IsCheckable="True"/>
+                    <MenuItem Header="專注" Tag="mode:專注" IsCheckable="True"/>
+                    <MenuItem Header="自訂" Tag="mode:自訂" IsCheckable="True"/>
+                    <Separator/>
+                    <MenuItem Header="更換首頁圖片…" Tag="wallpaper:set" Icon="&#xE91B;"/>
+                    <MenuItem Header="移除首頁圖片" Tag="wallpaper:clear" Icon="&#xE74D;"/>
+                    <Separator/>
+                    <MenuItem Header="結束 Islet" Tag="exit" Icon="&#xE7E8;"/>
                 </ContextMenu>
             </Grid.ContextMenu>
 
@@ -118,12 +121,18 @@
                     <!-- Home wallpaper: fills the whole expanded islet (behind the header and dots).
                          Shown only on the home page; ShowPage fades it in/out. The rounded clip on
                          ContentHost (set in ApplyIsletSize) keeps it inside the islet's corners. -->
+                    <!-- Home backdrop: fills the whole expanded islet (behind the header and dots).
+                         Shown only on the home page; ShowPage fades it in/out. What it shows (picture,
+                         colour or music cover, dim, blur) comes from Settings → 首頁背景. The rounded clip
+                         on ContentHost (set in ApplyIsletSize) keeps it inside the islet's corners. -->
                     <Grid x:Name="HomeBackdrop" Opacity="0" IsHitTestVisible="False"
-                          Visibility="{Binding HasHomeWallpaper, Converter={StaticResource BoolToVis}}">
-                        <Grid.Background>
-                            <ImageBrush ImageSource="{Binding HomeWallpaper}" Stretch="UniformToFill"
-                                        AlignmentX="Center" AlignmentY="Center"/>
-                        </Grid.Background>
+                          Visibility="{Binding HasHomeBackdrop, Converter={StaticResource BoolToVis}}">
+                        <Border Background="{Binding HomeBackdropBrush}" Margin="{Binding HomeBlurMargin}">
+                            <Border.Effect>
+                                <BlurEffect Radius="{Binding HomeBlurRadius}" KernelType="Gaussian"/>
+                            </Border.Effect>
+                        </Border>
+                        <Border Background="Black" Opacity="{Binding HomeDimOpacity}"/>
                         <!-- Soft scrim top and bottom so the header chips and page dots stay readable. -->
                         <Border>
                             <Border.Background>
@@ -155,6 +164,9 @@
                                 </Border>
                                 <ToggleButton Content="勿擾" Style="{StaticResource DndToggle}"
                                               IsChecked="{Binding IsDnd, Mode=TwoWay}"/>
+                                <Button Content="&#xE713;" ToolTip="設定" Style="{StaticResource IconButton}"
+                                        Width="22" Height="22" Margin="6,0,0,0" FontSize="12"
+                                        Click="Settings_Click"/>
                             </StackPanel>
 
                             <Border CornerRadius="10" Padding="8,2" HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -166,27 +178,28 @@
                         <!-- Pages (one visible at a time; mouse wheel / dots switch) -->
                         <Grid x:Name="PagesHost" Grid.Row="2" ClipToBounds="True">
 
-                        <!-- Page: Home — the user's own picture, drawn by HomeBackdrop across the whole
-                             islet. With none set, this shows a hint; click it to pick one. -->
+                        <!-- Page: Home — the backdrop chosen in Settings, drawn by HomeBackdrop across the
+                             whole islet. With nothing to show, this shows a hint (click it to pick a picture). -->
                         <Grid x:Name="PageHome" Visibility="Collapsed"
                               MouseLeftButtonUp="HomeWallpaper_Click">
                             <Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
 
-                            <Border x:Name="HomeEmpty" CornerRadius="14" Cursor="Hand" Background="{DynamicResource Surface.Card}">
+                            <Border x:Name="HomeEmpty" CornerRadius="14" Background="{DynamicResource Surface.Card}"
+                                    Visibility="{Binding HomeShowHint, Converter={StaticResource BoolToVis}}">
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding HasHomeWallpaper}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            <DataTrigger Binding="{Binding HomeHintClickable}" Value="True">
+                                                <Setter Property="Cursor" Value="Hand"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE91B;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                    <TextBlock Text="{Binding HomeHintGlyph}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
                                                FontSize="22" HorizontalAlignment="Center"
                                                Foreground="{DynamicResource Text.Secondary}"/>
-                                    <TextBlock Text="點一下選擇首頁圖片" Margin="0,6,0,0"
+                                    <TextBlock Text="{Binding HomeHintText}" Margin="0,6,0,0"
                                                HorizontalAlignment="Center" Style="{StaticResource Caption}"/>
                                 </StackPanel>
                             </Border>
@@ -542,8 +555,8 @@
                         </Grid>
                         </Grid>
 
-                        <!-- Page dots -->
-                        <StackPanel Grid.Row="3" Orientation="Horizontal"
+                        <!-- Page dots. Order and which ones show are set in code from Settings → 分頁. -->
+                        <StackPanel x:Name="DotsPanel" Grid.Row="3" Orientation="Horizontal"
                                     HorizontalAlignment="Center" VerticalAlignment="Center">
                             <RadioButton x:Name="TabHome" Tag="0" GroupName="Tabs" ToolTip="首頁"
                                          Style="{StaticResource PageDot}" Checked="Tab_Checked"/>

@@ -51,6 +51,13 @@ public partial class App : Application
         base.OnStartup(e);
     }
 
+    protected override void OnExit(ExitEventArgs e)
+    {
+        // Settings are saved shortly after each change; write anything still pending.
+        Islet.Services.SettingsService.Flush();
+        base.OnExit(e);
+    }
+
     private static int _dialogShown;
     private static string _lastLogged = "";
 
