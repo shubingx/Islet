@@ -446,9 +446,10 @@ public partial class IsletWindow : Window
 
     private void Notif_Click(object sender, MouseButtonEventArgs e)
     {
-        // Real build: also activates the source app. Test build only marks it read.
-        if (sender is FrameworkElement { DataContext: NotificationItem item }) _vm.MarkRead(item);
+        if (sender is FrameworkElement { DataContext: NotificationItem item }) _vm.OpenNotification(item);
     }
+
+    private void NotifSettings_Click(object sender, RoutedEventArgs e) => _vm.OpenNotificationSettings();
 
     private void Notif_Dismiss(object sender, RoutedEventArgs e)
     {

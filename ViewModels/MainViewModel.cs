@@ -10,8 +10,8 @@ using Islet.Services;
 namespace Islet.ViewModels;
 
 /// <summary>
-/// Main view model. Music comes from Windows media controls (MediaService); notifications
-/// and todos are still in-memory until their services are written.
+/// Main view model. Music comes from Windows media controls (MediaService), notifications from
+/// the Windows notification centre (NotificationService); todos are still in-memory.
 /// </summary>
 public sealed class MainViewModel : ViewModelBase
 {
@@ -20,6 +20,7 @@ public sealed class MainViewModel : ViewModelBase
 
     private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly MediaService _media = new(Dispatcher.CurrentDispatcher);
+    private readonly NotificationService _notif = new(Dispatcher.CurrentDispatcher);
 
     private bool _isDnd;
     private string _mode = "一般";
@@ -33,13 +34,16 @@ public sealed class MainViewModel : ViewModelBase
         Notifications.CollectionChanged += OnNotificationsChanged;
         Todos.CollectionChanged += OnTodosChanged;
 
-
-
         _clock.Tick += OnTick;
         _clock.Start();
 
         _media.Changed += OnMediaChanged;
         _ = _media.StartAsync();
+
+        _notif.Arrived += OnNotificationArrived;
+        _notif.Existing += OnExistingNotifications;
+        _notif.AccessChanged += _ => RaiseNotificationState();
+        _ = _notif.StartAsync();
     }
 
     /// <summary>Raised when the islet should show a short "peek" summary.</summary>
@@ -207,7 +211,70 @@ public sealed class MainViewModel : ViewModelBase
     public string NotifTabText => UnreadCount > 0 ? $"通知 {UnreadCount}" : "通知";
     public string NotifSummary => $"共 {Notifications.Count} 則，{UnreadCount} 則未讀";
 
+    /// <summary>Windows hasn't given us access yet: show the "open settings" hint instead of an empty list.</summary>
+    public bool NotifNeedsAccess => _notif.Access == NotificationAccess.Denied;
+
+    public string NotifEmptyText => _notif.Access switch
+    {
+        NotificationAccess.Denied => "尚未允許 Islet 讀取通知",
+        NotificationAccess.Unsupported => "這個 Windows 版本無法讀取通知（需要打包版）",
+        NotificationAccess.Unknown => "正在連接通知中心…",
+        _ => "沒有通知",
+    };
+
+    private const int MaxNotifications = 100;
+    private static readonly TimeSpan MergeWindow = TimeSpan.FromSeconds(8);
+    private string _lastPeekApp = "";
+    private DateTime _lastPeekAt;
+    private int _mergedCount;
+
     public void MarkRead(NotificationItem item) => item.IsRead = true;
+
+    /// <summary>Click on a card: mark it read and bring up the app that sent it.</summary>
+    public void OpenNotification(NotificationItem item)
+    {
+        item.IsRead = true;
+        NotificationService.OpenSourceApp(item);
+    }
+
+    public void MarkAllRead()
+    {
+        foreach (var n in Notifications) n.IsRead = true;
+    }
+
+    public void OpenNotificationSettings() => NotificationService.OpenAccessSettings();
+
+    private void OnExistingNotifications(IReadOnlyList<NotificationItem> items)
+    {
+        // Oldest first from the service; the list shows newest on top.
+        foreach (var item in items) Notifications.Insert(0, item);
+        TrimNotifications();
+    }
+
+    private void OnNotificationArrived(NotificationItem item)
+    {
+        Notifications.Insert(0, item);
+        TrimNotifications();
+
+        // Several messages from the same app in a short burst fold into one "N 則新訊息" peek.
+        var now = DateTime.Now;
+        if (item.AppName == _lastPeekApp && now - _lastPeekAt < MergeWindow)
+            _mergedCount++;
+        else
+            _mergedCount = 1;
+        _lastPeekApp = item.AppName;
+        _lastPeekAt = now;
+
+        string text = _mergedCount > 1
+            ? $"{item.AppName} · {_mergedCount} 則新訊息"
+            : item.HasBody ? $"{item.Title}：{item.Body}" : $"{item.AppName} · {item.Title}";
+        Peek(item.Badge, item.BadgeBrush, text);   // suppressed while DND; it's still in the list
+    }
+
+    private void TrimNotifications()
+    {
+        while (Notifications.Count > MaxNotifications) Notifications.RemoveAt(Notifications.Count - 1);
+    }
 
     public void Dismiss(NotificationItem item) => Notifications.Remove(item);
 
@@ -234,6 +301,8 @@ public sealed class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasNotifications));
         OnPropertyChanged(nameof(NotifTabText));
         OnPropertyChanged(nameof(NotifSummary));
+        OnPropertyChanged(nameof(NotifNeedsAccess));
+        OnPropertyChanged(nameof(NotifEmptyText));
     }
 
     // ---- Todos -------------------------------------------------------------
@@ -281,6 +350,9 @@ public sealed class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(ClockText));
 
         if (IsPlaying) RaiseProgress();
+
+        // After the user flips the switch in Settings, pick it up without a restart.
+        if (_notif.Access == NotificationAccess.Denied && _now.Second % 5 == 0) _ = _notif.StartAsync();
     }
 
     private static SolidColorBrush MakeBrush(Color color)
