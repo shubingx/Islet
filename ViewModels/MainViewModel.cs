@@ -44,6 +44,8 @@ public sealed class MainViewModel : ViewModelBase
         _notif.Existing += OnExistingNotifications;
         _notif.AccessChanged += _ => RaiseNotificationState();
         _ = _notif.StartAsync();
+
+        Timer.Finished += OnTimerFinished;
     }
 
     /// <summary>Raised when the islet should show a short "peek" summary.</summary>
@@ -360,7 +362,20 @@ public sealed class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(NextTodoDue));
     }
 
-    // ---- Timer -------------------------------------------------------------
+    // ---- Timer page --------------------------------------------------------
+
+    private static readonly Brush TimerBrush = MakeBrush(Color.FromRgb(0xFF, 0x9F, 0x0A));
+
+    public TimerViewModel Timer { get; } = new();
+
+    private void OnTimerFinished(TimeSpan duration)
+    {
+        System.Media.SystemSounds.Exclamation.Play();
+        // A timer the user set themselves should get through even in do-not-disturb.
+        Peek("⏱", TimerBrush, $"計時結束 · {TimerViewModel.DescribeDuration(duration)}", force: true);
+    }
+
+    // ---- Clock tick --------------------------------------------------------
 
     private void OnTick(object? sender, EventArgs e)
     {

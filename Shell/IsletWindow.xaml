@@ -62,8 +62,14 @@
                                  Visibility="{Binding IsDnd, Converter={StaticResource BoolToVis}}"/>
                     </StackPanel>
 
-                    <TextBlock Grid.Column="1" Text="{Binding TimeText}" FontSize="13" FontWeight="SemiBold"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <!-- Clock, or the running timer (orange) when one is in use -->
+                    <Grid Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding TimeText}" FontSize="13" FontWeight="SemiBold"
+                                   Visibility="{Binding Timer.IdleInactive, Converter={StaticResource BoolToVis}}"/>
+                        <TextBlock Text="{Binding Timer.IdleText}" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Accent.Timer}" Typography.NumeralAlignment="Tabular"
+                                   Visibility="{Binding Timer.IdleActive, Converter={StaticResource BoolToVis}}"/>
+                    </Grid>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
                                 Visibility="{Binding IsPlaying, Converter={StaticResource BoolToVis}}">
@@ -351,6 +357,72 @@
                                 </ItemsControl>
                             </ScrollViewer>
                         </Grid>
+
+                        <!-- Page: Timer (countdown + stopwatch) -->
+                        <Grid x:Name="PageTimer" Visibility="Collapsed" DataContext="{Binding Timer}">
+                            <Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="24"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="34"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Mode switch + presets -->
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center"
+                                            Visibility="{Binding IsCountdownMode, Converter={StaticResource BoolToVis}}">
+                                    <Button Content="1 分" Tag="1" Style="{StaticResource PillButton}" Click="TimerPreset_Click"/>
+                                    <Button Content="5 分" Tag="5" Style="{StaticResource PillButton}" Click="TimerPreset_Click"/>
+                                    <Button Content="10 分" Tag="10" Style="{StaticResource PillButton}" Click="TimerPreset_Click"/>
+                                    <Button Content="25 分" Tag="25" Style="{StaticResource PillButton}" Click="TimerPreset_Click"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <RadioButton Content="倒數" Tag="countdown" GroupName="TimerMode" IsChecked="True"
+                                                 FontSize="11" Style="{StaticResource TabButton}" Checked="TimerMode_Checked"/>
+                                    <RadioButton Content="碼錶" Tag="stopwatch" GroupName="TimerMode"
+                                                 FontSize="11" Style="{StaticResource TabButton}" Checked="TimerMode_Checked"/>
+                                </StackPanel>
+                            </DockPanel>
+
+                            <!-- Big digits + progress -->
+                            <Grid Grid.Row="1">
+                                <TextBlock Text="{Binding DisplayText}" FontSize="38" FontWeight="SemiBold"
+                                           Typography.NumeralAlignment="Tabular"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,6"/>
+                                <ProgressBar Width="220" Height="3" Minimum="0" Maximum="1"
+                                             HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,4"
+                                             Value="{Binding Progress, Mode=OneWay}"
+                                             Foreground="{DynamicResource Accent.Timer}"
+                                             Style="{StaticResource MusicProgress}" IsHitTestVisible="False"/>
+                            </Grid>
+
+                            <!-- Status · controls · ±1 min -->
+                            <Grid Grid.Row="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}"
+                                           VerticalAlignment="Center"/>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Content="&#xE72C;" ToolTip="重設" Width="32" Height="32"
+                                            Style="{StaticResource IconButton}" FontSize="14" Click="TimerReset_Click"/>
+                                    <Button Content="{Binding PlayGlyph}" Width="32" Height="32"
+                                            Style="{StaticResource IconButton}" FontSize="18"
+                                            Foreground="{DynamicResource Accent.Timer}" Click="TimerToggle_Click"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Visibility="{Binding IsCountdownMode, Converter={StaticResource BoolToVis}}">
+                                    <Button Content="−1 分" Tag="-1" Style="{StaticResource PillButton}" Click="TimerAdjust_Click"/>
+                                    <Button Content="+1 分" Tag="1" Style="{StaticResource PillButton}" Click="TimerAdjust_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
                         </Grid>
 
                         <!-- Page dots -->
@@ -363,6 +435,8 @@
                             <RadioButton x:Name="TabNotif" Tag="2" GroupName="Tabs" ToolTip="{Binding NotifTabText}"
                                          Style="{StaticResource PageDot}" Checked="Tab_Checked"/>
                             <RadioButton x:Name="TabTodo" Tag="3" GroupName="Tabs" ToolTip="待辦"
+                                         Style="{StaticResource PageDot}" Checked="Tab_Checked"/>
+                            <RadioButton x:Name="TabTimer" Tag="4" GroupName="Tabs" ToolTip="計時器"
                                          Style="{StaticResource PageDot}" Checked="Tab_Checked"/>
                         </StackPanel>
                     </Grid>

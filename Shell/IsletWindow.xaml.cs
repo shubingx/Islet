@@ -93,8 +93,8 @@ public partial class IsletWindow : Window
 
         ApplyIsletSize(idle.W, idle.H, idle.R);
         ApplyWindowSize(IsletState.Idle);
-        _pages = new FrameworkElement[] { PageHome, PageMusic, PageNotif, PageTodo };
-        _dots = new[] { TabHome, TabMusic, TabNotif, TabTodo };
+        _pages = new FrameworkElement[] { PageHome, PageMusic, PageNotif, PageTodo, PageTimer };
+        _dots = new[] { TabHome, TabMusic, TabNotif, TabTodo, TabTimer };
         ShowPage(0);
         UpdateEqualizer();
 
@@ -472,5 +472,27 @@ public partial class IsletWindow : Window
         _vm.AddTodo(TodoInput.Text);
         TodoInput.Clear();
         e.Handled = true;
+    }
+
+    // ---- Timer page --------------------------------------------------------
+
+    private void TimerMode_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag }) _vm.Timer.IsStopwatchMode = tag == "stopwatch";
+    }
+
+    private void TimerToggle_Click(object sender, RoutedEventArgs e) => _vm.Timer.Toggle();
+    private void TimerReset_Click(object sender, RoutedEventArgs e) => _vm.Timer.Reset();
+
+    private void TimerPreset_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string tag } && int.TryParse(tag, out int minutes))
+            _vm.Timer.SetDuration(TimeSpan.FromMinutes(minutes));
+    }
+
+    private void TimerAdjust_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string tag } && int.TryParse(tag, out int minutes))
+            _vm.Timer.Adjust(minutes);
     }
 }
