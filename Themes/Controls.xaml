@@ -267,7 +267,6 @@
         <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, Microsoft JhengHei UI, Microsoft JhengHei"/>
         <Setter Property="HasDropShadow" Value="True"/>
         <Setter Property="MinWidth" Value="190"/>
-        <Setter Property="ItemContainerStyle" Value="{StaticResource IsletMenuItem}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ContextMenu">
@@ -279,6 +278,9 @@
             </Setter.Value>
         </Setter>
         <Style.Resources>
+            <!-- Applied to MenuItems by type. Not ItemContainerStyle: that is also applied to Separator
+                 entries (a Separator is its own container), which throws because the style targets MenuItem. -->
+            <Style TargetType="MenuItem" BasedOn="{StaticResource IsletMenuItem}"/>
             <!-- Separators inside menus are looked up by this key, not by type. -->
             <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
                 <Setter Property="Template">
