@@ -9,6 +9,11 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>Islet</RootNamespace>
     <AssemblyName>Islet</AssemblyName>
+    <ApplicationIcon>Assets\Islet.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Islet.ico" />
+  </ItemGroup>
 
 </Project>
