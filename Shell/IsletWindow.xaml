@@ -33,6 +33,9 @@
                         <MenuItem Header="自訂" Tag="mode:自訂" IsCheckable="True"/>
                     </MenuItem>
                     <Separator/>
+                    <MenuItem Header="更換首頁圖片…" Tag="wallpaper:set"/>
+                    <MenuItem Header="移除首頁圖片" Tag="wallpaper:clear"/>
+                    <Separator/>
                     <MenuItem Header="結束" Tag="exit"/>
                 </ContextMenu>
             </Grid.ContextMenu>
@@ -111,6 +114,29 @@
                 <!-- ============ Expanded ============ -->
                 <Grid x:Name="ExpandedLayer" Width="420" Height="200" Opacity="0" IsHitTestVisible="False"
                       HorizontalAlignment="Center" VerticalAlignment="Top">
+
+                    <!-- Home wallpaper: fills the whole expanded islet (behind the header and dots).
+                         Shown only on the home page; ShowPage fades it in/out. The rounded clip on
+                         ContentHost (set in ApplyIsletSize) keeps it inside the islet's corners. -->
+                    <Grid x:Name="HomeBackdrop" Opacity="0" IsHitTestVisible="False"
+                          Visibility="{Binding HasHomeWallpaper, Converter={StaticResource BoolToVis}}">
+                        <Grid.Background>
+                            <ImageBrush ImageSource="{Binding HomeWallpaper}" Stretch="UniformToFill"
+                                        AlignmentX="Center" AlignmentY="Center"/>
+                        </Grid.Background>
+                        <!-- Soft scrim top and bottom so the header chips and page dots stay readable. -->
+                        <Border>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#73000000" Offset="0"/>
+                                    <GradientStop Color="#00000000" Offset="0.28"/>
+                                    <GradientStop Color="#00000000" Offset="0.78"/>
+                                    <GradientStop Color="#73000000" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                    </Grid>
+
                     <Grid Margin="18,10,18,6">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="22"/>
@@ -140,28 +166,28 @@
                         <!-- Pages (one visible at a time; mouse wheel / dots switch) -->
                         <Grid x:Name="PagesHost" Grid.Row="2" ClipToBounds="True">
 
-                        <!-- Page: Home (date/time now lives in the header chip) -->
-                        <Grid x:Name="PageHome" Visibility="Collapsed">
+                        <!-- Page: Home — the user's own picture, drawn by HomeBackdrop across the whole
+                             islet. With none set, this shows a hint; click it to pick one. -->
+                        <Grid x:Name="PageHome" Visibility="Collapsed"
+                              MouseLeftButtonUp="HomeWallpaper_Click">
                             <Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
 
-                            <Border Style="{StaticResource Card}" VerticalAlignment="Center">
-                                <StackPanel>
-                                    <TextBlock Text="下一項待辦" Style="{StaticResource Caption}"/>
-                                    <TextBlock Text="{Binding NextTodoTitle}" FontWeight="SemiBold"
-                                               TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Text="{Binding NextTodoDue}" Style="{StaticResource Caption}"/>
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Column="2" Style="{StaticResource Card}" VerticalAlignment="Center">
-                                <StackPanel>
-                                    <TextBlock Text="腳本卡片 · hello-card" Style="{StaticResource Caption}"/>
-                                    <TextBlock Text="今天也要加油！" FontWeight="SemiBold"/>
-                                    <TextBlock Text="（示範用，之後由腳本提供）" Style="{StaticResource Caption}"/>
+                            <Border x:Name="HomeEmpty" CornerRadius="14" Cursor="Hand" Background="{DynamicResource Surface.Card}">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasHomeWallpaper}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE91B;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                               FontSize="22" HorizontalAlignment="Center"
+                                               Foreground="{DynamicResource Text.Secondary}"/>
+                                    <TextBlock Text="點一下選擇首頁圖片" Margin="0,6,0,0"
+                                               HorizontalAlignment="Center" Style="{StaticResource Caption}"/>
                                 </StackPanel>
                             </Border>
                         </Grid>

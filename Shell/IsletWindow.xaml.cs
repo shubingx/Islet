@@ -183,6 +183,11 @@ public partial class IsletWindow : Window
         IsletHost.Width = Math.Max(20, w);
         IsletHost.Height = Math.Max(20, h);
         IsletBg.CornerRadius = new CornerRadius(Math.Max(0, r));
+
+        // Clip content to the islet's rounded shape (not just its box), so edge-to-edge content
+        // such as the home wallpaper follows the corners while the spring animates.
+        double cw = IsletHost.Width, ch = IsletHost.Height, cr = Math.Max(0, Math.Min(r, Math.Min(cw, ch) / 2));
+        ContentHost.Clip = new RectangleGeometry(new Rect(0, 0, cw, ch), cr, cr);
     }
 
     /// <summary>Sizes and centers the (transparent) window around the islet for a given state.</summary>
@@ -320,6 +325,7 @@ public partial class IsletWindow : Window
                 if (tag == "dnd") item.IsChecked = _vm.IsDnd;
                 else if (tag == "pin") item.IsChecked = _pinned;
                 else if (tag.StartsWith("mode:")) item.IsChecked = tag.Substring(5) == _vm.Mode;
+                else if (tag == "wallpaper:clear") item.IsEnabled = _vm.HasHomeWallpaper;
             }
 
             if (item.HasItems) SyncMenu(item.Items);
@@ -339,12 +345,61 @@ public partial class IsletWindow : Window
                 _pinned = item.IsChecked;
                 if (_pinned) SetState(IsletState.Expanded);
                 break;
+            case "wallpaper:set":
+                // Let the menu close first, then open the picker.
+                Dispatcher.BeginInvoke(new Action(PickHomeWallpaper));
+                break;
+            case "wallpaper:clear":
+                _vm.ClearHomeWallpaper();
+                break;
             case "exit":
                 Application.Current.Shutdown();
                 break;
             default:
                 if (tag.StartsWith("mode:")) _vm.SetMode(tag.Substring(5));
                 break;
+        }
+    }
+
+    // ---- Home wallpaper ----------------------------------------------------
+
+    private void HomeWallpaper_Click(object sender, MouseButtonEventArgs e)
+    {
+        // With a picture set, a plain click does nothing; change it from the right-click menu.
+        if (_vm.HasHomeWallpaper) return;
+        e.Handled = true;
+        PickHomeWallpaper();
+    }
+
+    private void PickHomeWallpaper()
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "選擇首頁圖片",
+            Filter = Islet.Services.WallpaperService.DialogFilter,
+            Multiselect = false,
+        };
+
+        // Keep the islet expanded while the dialog is up (the cursor leaves the islet).
+        _menuOpen = true;
+        bool? ok;
+        try
+        {
+            ok = dialog.ShowDialog(this);
+        }
+        finally
+        {
+            _menuOpen = false;
+        }
+
+        if (ok == true && !_vm.SetHomeWallpaper(dialog.FileName))
+            MessageBox.Show(this, "這個檔案無法當作圖片開啟，請換一張試試。", "Islet",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
+
+        if (!_mouseOver && !_pinned)
+        {
+            _collapseTimer.Stop();
+            _collapseTimer.Start();
         }
     }
 
@@ -370,6 +425,9 @@ public partial class IsletWindow : Window
             _pages[i].Visibility = i == index ? Visibility.Visible : Visibility.Collapsed;
 
         if (_dots[index].IsChecked != true) _dots[index].IsChecked = true;
+
+        HomeBackdrop.BeginAnimation(OpacityProperty, new DoubleAnimation(
+            _pages[index] == PageHome ? 1 : 0, TimeSpan.FromMilliseconds(direction == 0 ? 0 : 200)));
 
         if (direction != 0) SlideIn(_pages[index], direction * 36);
         UpdatePerfSampling();

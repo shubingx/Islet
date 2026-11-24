@@ -32,7 +32,6 @@ public sealed class MainViewModel : ViewModelBase
     public MainViewModel()
     {
         Notifications.CollectionChanged += OnNotificationsChanged;
-        Todos.CollectionChanged += OnTodosChanged;
 
         _clock.Tick += OnTick;
         _clock.Start();
@@ -331,10 +330,6 @@ public sealed class MainViewModel : ViewModelBase
 
     public ObservableCollection<TodoItem> Todos { get; } = new();
 
-    private TodoItem? NextTodo => Todos.FirstOrDefault(t => !t.IsDone);
-    public string NextTodoTitle => NextTodo?.Text ?? "沒有待辦";
-    public string NextTodoDue => NextTodo?.Due ?? "";
-
     public void AddTodo(string text)
     {
         text = text.Trim();
@@ -342,24 +337,41 @@ public sealed class MainViewModel : ViewModelBase
         Todos.Add(new TodoItem { Text = text });
     }
 
-    private void OnTodosChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    // ---- Home page wallpaper -----------------------------------------------
+
+    private ImageSource? _homeWallpaper = WallpaperService.Load();
+
+    /// <summary>The user's own picture for the home page; null shows the "pick a picture" hint.</summary>
+    public ImageSource? HomeWallpaper
     {
-        if (e.NewItems != null)
-            foreach (TodoItem t in e.NewItems) t.PropertyChanged += OnTodoItemChanged;
-        if (e.OldItems != null)
-            foreach (TodoItem t in e.OldItems) t.PropertyChanged -= OnTodoItemChanged;
-        RaiseNextTodo();
+        get => _homeWallpaper;
+        private set
+        {
+            if (Set(ref _homeWallpaper, value)) OnPropertyChanged(nameof(HasHomeWallpaper));
+        }
     }
 
-    private void OnTodoItemChanged(object? sender, PropertyChangedEventArgs e)
+    public bool HasHomeWallpaper => _homeWallpaper != null;
+
+    /// <summary>Uses <paramref name="path"/> as the home picture. Returns false if it isn't a readable image.</summary>
+    public bool SetHomeWallpaper(string path)
     {
-        if (e.PropertyName == nameof(TodoItem.IsDone)) RaiseNextTodo();
+        try
+        {
+            HomeWallpaper = WallpaperService.Set(path);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            App.Log($"首頁圖片設定失敗（{path}）：{ex.Message}");
+            return false;
+        }
     }
 
-    private void RaiseNextTodo()
+    public void ClearHomeWallpaper()
     {
-        OnPropertyChanged(nameof(NextTodoTitle));
-        OnPropertyChanged(nameof(NextTodoDue));
+        WallpaperService.Clear();
+        HomeWallpaper = null;
     }
 
     // ---- Timer page --------------------------------------------------------
