@@ -180,8 +180,9 @@ public sealed class NotificationService : IDisposable
             // AppInfo can throw for apps that were uninstalled since.
         }
         if (appName.Length == 0) appName = PrettyName(aumid);
+        bool fromBrowser = NotificationFilter.IsBrowser(appName, aumid);
 
-        string title = "", body = "", rawTexts = "(none)";
+        string title = "", body = "", site = "", rawTexts = "(none)";
         try
         {
             var binding = n.Notification?.Visual?.GetBinding(WinNotif.KnownNotificationBindings.ToastGeneric);
@@ -192,6 +193,13 @@ public sealed class NotificationService : IDisposable
                     .Where(t => t.Length > 0)
                     .ToList();
                 rawTexts = string.Join(" | ", texts.Select(t => $"\"{t}\""));
+
+                // Browsers put the sending site ("www.instagram.com") in its own attribution line.
+                if (fromBrowser && texts.LastOrDefault(t => SiteLike.IsMatch(t)) is { } siteLine)
+                {
+                    site = siteLine.ToLowerInvariant();
+                    texts.Remove(siteLine);
+                }
 
                 if (texts.Count > 0) title = texts[0];
                 if (texts.Count > 1) body = string.Join("  ", texts.Skip(1));
@@ -209,12 +217,18 @@ public sealed class NotificationService : IDisposable
             return null;
         }
 
-        bool allowed = NotificationFilter.IsAllowed(appName, aumid);
-        Log($"toast #{n.Id} app='{appName}' aumid='{aumid}' texts={rawTexts} -> {(allowed ? "SHOWN" : "filtered")}");
+        bool allowed = NotificationFilter.IsAllowed(appName, aumid, site, title + "\n" + body);
+        Log($"toast #{n.Id} app='{appName}' aumid='{aumid}' browser={fromBrowser} site='{site}' texts={rawTexts} -> {(allowed ? "SHOWN" : "filtered")}");
         if (!allowed) return null;
 
         ImageSource? icon = null;
-        if (display is not null)
+        if (site.Length > 0)
+            appName = SiteName(site);   // show "Instagram", not "Google Chrome"; browser icon would mislead
+        else if (fromBrowser && NotificationFilter.SocialSiteIn(title + "\n" + body) is { } host)
+            appName = SiteName(host);
+        else if (fromBrowser && NotificationFilter.SocialBrandIn(title + "\n" + body) is { } brand)
+            appName = brand;
+        else if (display is not null)
             icon = await LoadIconAsync(display, aumid.Length > 0 ? aumid : appName);
 
         if (title.Length == 0) title = appName;
@@ -325,6 +339,27 @@ public sealed class NotificationService : IDisposable
         foreach (char c in text)
             if (c is < '\u2066' or > '\u2069') sb.Append(c);
         return sb.ToString().Trim();
+    }
+
+    /// <summary>A bare host name, optionally with "https://" in front.</summary>
+    private static readonly Regex SiteLike = new(@"^(https?://)?([a-z0-9-]+\.)+[a-z]{2,}/?$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    private static string SiteName(string site)
+    {
+        string s = Regex.Replace(site, @"^(https?://)?(www\.|web\.|m\.)?", "").TrimEnd('/');
+        return s switch
+        {
+            _ when s.StartsWith("instagram.") => "Instagram",
+            _ when s.StartsWith("facebook.") => "Facebook",
+            _ when s.StartsWith("messenger.") => "Messenger",
+            _ when s.StartsWith("discord.") => "Discord",
+            _ when s.StartsWith("whatsapp.") => "WhatsApp",
+            _ when s.StartsWith("telegram.") => "Telegram",
+            _ when s.StartsWith("threads.") => "Threads",
+            _ when s is "x.com" or "twitter.com" => "X",
+            _ => s,
+        };
     }
 
     private static string PrettyName(string aumid)

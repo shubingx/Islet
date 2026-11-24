@@ -247,14 +247,17 @@ public sealed class MainViewModel : ViewModelBase
     private void OnExistingNotifications(IReadOnlyList<NotificationItem> items)
     {
         // Oldest first from the service; the list shows newest on top.
-        foreach (var item in items) Notifications.Insert(0, item);
+        foreach (var item in items) AddOrReplace(item);
         TrimNotifications();
     }
 
     private void OnNotificationArrived(NotificationItem item)
     {
-        Notifications.Insert(0, item);
+        // Apps like Instagram web keep re-sending the same "你有未查看的通知。": keep one copy,
+        // move it to the top, and don't peek again for the same text.
+        bool repeat = AddOrReplace(item);
         TrimNotifications();
+        if (repeat) return;
 
         // Several messages from the same app in a short burst fold into one "N 則新訊息" peek.
         var now = DateTime.Now;
@@ -269,6 +272,23 @@ public sealed class MainViewModel : ViewModelBase
             ? $"{item.AppName} · {_mergedCount} 則新訊息"
             : item.HasBody ? $"{item.Title}：{item.Body}" : $"{item.AppName} · {item.Title}";
         Peek(item.Badge, item.BadgeBrush, text);   // suppressed while DND; it's still in the list
+    }
+
+    /// <summary>
+    /// Puts the item on top. An older notification with the same app, title and body is removed
+    /// first (it stays unread if either copy is). Returns true when it was such a repeat.
+    /// </summary>
+    private bool AddOrReplace(NotificationItem item)
+    {
+        var old = Notifications.FirstOrDefault(n =>
+            n.AppName == item.AppName && n.Title == item.Title && n.Body == item.Body);
+        if (old is not null)
+        {
+            if (old.IsUnread) item.IsRead = false;
+            Notifications.Remove(old);
+        }
+        Notifications.Insert(0, item);
+        return old is not null;
     }
 
     private void TrimNotifications()
