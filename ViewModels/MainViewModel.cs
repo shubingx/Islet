@@ -368,6 +368,10 @@ public sealed class MainViewModel : ViewModelBase
 
     public TimerViewModel Timer { get; } = new();
 
+    // ---- Performance page --------------------------------------------------
+
+    public PerformanceViewModel Perf { get; } = new(Dispatcher.CurrentDispatcher);
+
     private void OnTimerFinished(TimeSpan duration)
     {
         System.Media.SystemSounds.Exclamation.Play();

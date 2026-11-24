@@ -93,8 +93,8 @@ public partial class IsletWindow : Window
 
         ApplyIsletSize(idle.W, idle.H, idle.R);
         ApplyWindowSize(IsletState.Idle);
-        _pages = new FrameworkElement[] { PageHome, PageMusic, PageNotif, PageTodo, PageTimer };
-        _dots = new[] { TabHome, TabMusic, TabNotif, TabTodo, TabTimer };
+        _pages = new FrameworkElement[] { PageHome, PageMusic, PageNotif, PageTodo, PageTimer, PagePerf };
+        _dots = new[] { TabHome, TabMusic, TabNotif, TabTodo, TabTimer, TabPerf };
         ShowPage(0);
         UpdateEqualizer();
 
@@ -155,6 +155,7 @@ public partial class IsletWindow : Window
         _spring.Damping = growing ? GrowDamping : ShrinkDamping;
         _spring.SetTarget(w, h, r);
         UpdateLayers(next);
+        UpdatePerfSampling();
     }
 
     private void UpdateLayers(IsletState state)
@@ -371,7 +372,13 @@ public partial class IsletWindow : Window
         if (_dots[index].IsChecked != true) _dots[index].IsChecked = true;
 
         if (direction != 0) SlideIn(_pages[index], direction * 36);
+        UpdatePerfSampling();
     }
+
+    /// <summary>Performance counters are only read while the expanded islet shows that page.</summary>
+    private void UpdatePerfSampling() =>
+        _vm.Perf.IsActive = _state == IsletState.Expanded && _pageIndex >= 0 && _pages.Length > 0
+                            && _pages[_pageIndex] == PagePerf;
 
     private static void SlideIn(UIElement element, double fromX)
     {

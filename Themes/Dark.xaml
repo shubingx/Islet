@@ -12,4 +12,9 @@
     <SolidColorBrush x:Key="Warn.Dnd"          Color="#FFFFB020"/>
     <SolidColorBrush x:Key="Accent.Timer"      Color="#FFFF9F0A"/>
 
+    <!-- Performance rings: white below 60 %, orange from 60 %, red from 85 %. -->
+    <Color x:Key="Perf.Warn">#FFFF9F0A</Color>
+    <Color x:Key="Perf.Critical">#FFFF453A</Color>
+    <SolidColorBrush x:Key="Perf.WarnBrush" Color="#FFFF9F0A"/>
+
 </ResourceDictionary>
