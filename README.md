@@ -1,174 +1,55 @@
 <div align="center">
 
-# 🏝️ Islet
+<img src="Assets/Branding/Islet-1024.png" width="120" alt="Islet 圖示">
+
+# Islet
 
 **羨慕 iPhone 的靈動島嗎？現在 Windows 也有了！**
 
-音樂、通知、待辦全部收進螢幕頂端的小膠囊，不用切視窗就能切歌、看訊息。
-還能自己寫腳本，想讓它做什麼都行。
+音樂、社群通知、計時器、電腦效能，全部收進螢幕頂端的小膠囊。
+不用切視窗，就能切歌、看訊息。
 
 ![平台](https://img.shields.io/badge/平台-Windows%2010%20%7C%2011-0078D4)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
-![狀態](https://img.shields.io/badge/狀態-UI%20測試版-orange)
-![授權](https://img.shields.io/badge/授權-待定-lightgrey)
+![狀態](https://img.shields.io/badge/狀態-測試版-orange)
+![授權](https://img.shields.io/badge/授權-MIT-green)
 
-[功能](#-功能) · [下載安裝](#-下載與安裝一般使用者) · [從原始碼執行](#️-從原始碼執行開發者) · [打包發佈](#-打包成安裝檔維護者) · [參與貢獻](#-參與貢獻) · [授權](#-授權與開源規範)
+[功能](#-功能) · [安裝](#-安裝) · [怎麼用](#-怎麼用) · [技術](#️-用什麼做的) · [文件](docs/README.md)
 
 </div>
 
 > [!WARNING]
-> 目前是 **UI 測試版**：音樂已接上真實資料，通知與待辦仍是展示用的假資料，重開程式就會清空。正式版推出前，介面與設定格式都可能變動。
+> 目前是 **測試版**，還沒有正式安裝檔，介面與設定之後都可能變動。
 
 <!-- 之後放上截圖或 GIF：docs/images/preview.gif -->
 
----
-
 ## ✨ 這是什麼？
 
-Islet 是一款給 Windows 10／11 用的「靈動島」。平常它只是螢幕頂端一顆小小的黑色膠囊，顯示時間或正在播放的歌；有事發生時（換歌、收到訊息、待辦到期）它會彈一下告訴你，滑鼠移上去就展開成完整面板，用完自己縮回去。
+Islet 是一款給 Windows 10／11 用的「靈動島」。
 
-**設計原則**
+平常它只是螢幕頂端的一顆小黑膠囊，顯示時間或正在播放的歌。換歌、收到訊息、計時結束時，它會彈一下告訴你。把滑鼠移上去，它就展開成完整的面板，用完會自己縮回去。
 
-- **簡潔優先**：收合時只顯示一個最重要的資訊。
-- **不打擾**：全螢幕、玩遊戲、簡報時自動躲起來；專注模式下一則提示都不彈。
-- **模組化**：每個功能都是獨立模組，內建功能和使用者腳本走同一套 API。
-- **權限明確**：讀通知、腳本上網這類能力都要你同意才會啟用，資料只在你的電腦上處理。
-
-**跟其他靈動島專案有什麼不同？**
-大部分同類專案主打媒體控制與計時器；Islet 的重點是 **社群通知中心**、**自訂模式** 與 **腳本擴充**。
-
----
+它不會擋到你：收合時點擊會直接穿透到下面的視窗，勿擾模式下也不會跳出提示。
 
 ## 🎯 功能
 
-| 模組 | 能做什麼 | 狀態 |
-| --- | --- | --- |
-| 🕐 日期時間 | 收合時顯示時間；展開顯示日期、星期 | ✅ 可用 |
-| 🎵 音樂 | 歌名、封面、進度條、播放／暫停、上下首、拖曳進度；支援 Spotify 桌面版、瀏覽器裡的 YouTube／YouTube Music 等 | ✅ 可用 |
-| 💬 通知 | LINE、Discord、IG 等通知列表，依 App 分組、未讀數，點擊開啟原 App | 🚧 介面完成，尚未接上系統通知 |
-| 🌙 模式 | 勿擾、專注、自訂模式（顯示哪些模組、通知白名單、主題） | 🚧 可切換，規則尚未完成 |
-| ✅ 待辦提醒 | 新增、完成、到期提醒；收合時顯示下一項 | 🚧 介面完成，尚未存檔 |
-| 🧩 自訂腳本 | 用 JavaScript 新增卡片、發通知、定時觸發、回應點擊 | 📋 規劃中 |
-| 🎨 主題 | 深色、淺色、跟隨系統，可匯入自訂主題 | 🚧 目前只有深色 |
+- 🏠 **首頁**：放你喜歡的圖片、純色，或目前播放歌曲的封面。
+- 🎵 **音樂**：顯示歌名、封面和進度，可以播放、暫停、切歌、拖曳進度。支援 Spotify 和瀏覽器裡的 YouTube／YouTube Music。
+- 💬 **社群通知**：只顯示 LINE、Discord、Messenger、Telegram 等聊天 App，以及 IG、FB 網頁版的通知，廣告和其他雜訊會被濾掉。點一下就打開原本的 App。
+- ⏱️ **計時器**：倒數和碼錶，時間到會在島上提醒。
+- 📊 **效能**：用圓環顯示 CPU、記憶體、GPU、磁碟的使用量，還有網路速度。
+- ✅ **待辦**：隨手記下要做的事（存檔功能開發中）。
+- ⚙️ **設定**：開機自動啟動、展開速度、分頁要顯示哪些、排列順序。
 
-### 島的四種狀態
+各功能目前的完成度請看[專案進度](docs/roadmap.md)。
 
-| 狀態 | 什麼時候出現 | 顯示什麼 |
-| --- | --- | --- |
-| **收合** | 平常 | 時間；播放中改顯示小封面與跳動的音量條 |
-| **提示** | 新通知、換歌、待辦到期、模式切換 | 單行摘要，約 4 秒後自動收回 |
-| **展開** | 滑鼠停在膠囊上 | 分頁面板：首頁／音樂／通知／待辦 |
-| **設定** | 右鍵選單或系統匣 | 設定、模式管理、腳本管理（規劃中） |
+## 📥 安裝
 
-展開與收合使用彈簧動畫，內容先淡出再縮放，看起來會有「彈一下」的手感。
+**需求**：Windows 10 版本 2004（組建 19041）以上，或 Windows 11（x64）。
 
-### 操作方式
+正式安裝檔還沒有發佈。發佈後到 [Releases](https://github.com/shubingx/Islet/releases/latest) 下載 `Islet-Setup-x.y.z.exe`，雙擊安裝即可，不需要另外裝 .NET。
 
-| 動作 | 效果 |
-| --- | --- |
-| 滑鼠停在膠囊上（約 0.4 秒） | 展開成面板 |
-| 點擊收合中的膠囊 | 點擊會穿透到下方視窗（例如 Chrome 的分頁），不會擋到你 |
-| 滑鼠移開（約 0.6 秒後） | 自動收合 |
-| `Esc` | 取消固定並收合 |
-| 展開後按右鍵 | 選單：勿擾、固定展開、模式、結束 |
-| 音樂分頁 | 上一首／播放暫停／下一首，點進度條跳轉 |
-| 上方分頁 | 首頁／音樂／通知／待辦 |
-| 右上角「模式」 | 循環切換 一般 → 專注 → 自訂 |
-| 右上角「勿擾」 | 新通知不彈提示，但仍收進列表 |
-
----
-
-## 📥 下載與安裝（一般使用者）
-
-> [!NOTE]
-> 正式安裝檔尚未發佈。以下是發佈後的安裝方式，目前想試用請參考[從原始碼執行](#️-從原始碼執行開發者)。
-
-### 系統需求
-
-- Windows 10 版本 2004（組建 19041）以上，或 Windows 11
-- 64 位元（x64）電腦
-- **不需要**另外安裝 .NET 或任何開發工具，安裝檔已經內含
-
-> 不知道自己的 Windows 版本？按 `Win + R`，輸入 `winver` 按 Enter 就會看到。
-
-### 安裝步驟
-
-1. 到 [Releases 頁面](https://github.com/shubingx/Islet/releases/latest) 下載最新版本，有兩種可選：
-
-   | 檔案 | 適合誰 | 通知功能 |
-   | --- | --- | --- |
-   | `Islet-Setup-x.y.z.exe` | **大多數人選這個**，安裝後有開始功能表捷徑、可開機自動啟動、可從「設定 > 應用程式」移除 | ✅ 支援 |
-   | `Islet-x.y.z-portable.zip` | 不想安裝、想放隨身碟的人，解壓縮後直接執行 `Islet.exe` | ❌ 不支援（Windows 限制，見下方說明） |
-
-2. 雙擊下載的安裝檔。
-3. **如果出現藍色的「Windows 已保護您的電腦」視窗**：這是因為本專案還沒購買程式碼簽章憑證，Windows 不認識這個發行者，並不代表有病毒。請點 **「其他資訊」→「仍要執行」**。
-   如果不放心，可以先[驗證檔案](#驗證下載的檔案選用)。
-4. 依照安裝精靈按「下一步」完成安裝。
-5. 第一次開啟會有三步簡單引導（都可以跳過）：
-   1. 選擇島要出現在哪個螢幕
-   2. 開啟通知存取權（會帶你到 Windows 設定，點開開關即可）
-   3. 選擇預設模式：一般或專注
-
-完成！螢幕頂端出現小膠囊就代表成功了 🎉
-
-### 驗證下載的檔案（選用）
-
-每個版本的 Releases 頁面都會附上 SHA256 校驗值。在下載資料夾空白處按右鍵選「在終端機中開啟」，輸入：
-
-```powershell
-Get-FileHash .\Islet-Setup-x.y.z.exe -Algorithm SHA256
-```
-
-顯示的一長串文字和 Releases 頁面上的一樣，就代表檔案沒被竄改。
-
-### 移除
-
-「設定 > 應用程式 > 已安裝的應用程式」找到 Islet，按「解除安裝」。
-你的設定與待辦存在 `%APPDATA%\Islet\`，想完全清除可以手動刪掉這個資料夾。
-
-### 常見問題
-
-<details>
-<summary><b>為什麼免安裝版不能讀通知？</b></summary>
-
-Windows 只允許有「套件身分」的程式讀取通知，這需要透過正式安裝（MSIX 或安裝檔註冊）才能取得。免安裝版的其他功能（音樂、時間、待辦）都正常。
-</details>
-
-<details>
-<summary><b>音樂來源顯示成「Chrome」而不是「YouTube」？</b></summary>
-
-YouTube 是用瀏覽器視窗標題判斷的；如果播放 YouTube 的分頁不是該視窗目前顯示的分頁，就只能顯示瀏覽器名稱。Spotify 網頁版也會顯示成瀏覽器名稱。播放控制不受影響。
-</details>
-
-<details>
-<summary><b>可以回覆 LINE／Discord 訊息嗎？</b></summary>
-
-不行。Windows 只讓程式讀取通知上的文字，無法回覆或標為已讀，所以點通知會直接打開原本的 App。我們也不會用非官方方式登入你的帳號讀訊息，那樣有違反服務條款、被封號的風險。
-</details>
-
-<details>
-<summary><b>IG 通知時有時無？</b></summary>
-
-IG 沒有官方的 Windows 桌面通知，只能依靠瀏覽器通知，因此列為「盡力支援」。
-</details>
-
-<details>
-<summary><b>島擋到遊戲或影片了？</b></summary>
-
-全螢幕自動隱藏還在開發中。目前可以在展開後按右鍵選「結束」暫時關掉。
-</details>
-
----
-
-## 🛠️ 從原始碼執行（開發者）
-
-### 需求
-
-- Windows 10 2004（19041）以上或 Windows 11
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- 編輯器擇一：Visual Studio 2026（勾選「.NET 桌面開發」）、VS Code + C# Dev Kit、或 JetBrains Rider
-
-### 執行
+目前想試用的話，請照[開發指南](docs/development.md#從原始碼執行)從原始碼執行：
 
 ```powershell
 git clone https://github.com/shubingx/Islet.git
@@ -176,283 +57,37 @@ cd Islet
 dotnet run
 ```
 
-或用 Visual Studio 開啟資料夾後按 `F5`。
+## 🖱️ 怎麼用
 
-### 調整大小
-
-整體尺寸由 `Shell/IsletWindow.xaml.cs` 的 `UiScale` 控制，`1.0` 是原始設計尺寸，改成 `0.85` 可整體縮小。
-
-### 技術棧
-
-| 層 | 選擇 | 用途 |
-| --- | --- | --- |
-| 語言與執行環境 | C#、.NET 10 | 主程式 |
-| UI 框架 | WPF | 無邊框、透明、置頂視窗與彈簧動畫 |
-| 媒體控制 | WinRT `GlobalSystemMediaTransportControlsSessionManager` | 讀取與控制 Spotify、YouTube 等播放狀態 |
-| 通知監聽 | WinRT `UserNotificationListener` | 讀取 LINE、Discord 等通知（規劃中） |
-| 視窗行為 | Win32 API（P/Invoke） | 點擊穿透、全螢幕偵測、隱藏於工作列 |
-| 資料儲存 | SQLite + JSON 設定檔 | 待辦、通知歷史、設定（規劃中） |
-| 腳本引擎 | Jint（純 .NET 的 JavaScript 直譯器） | 執行使用者腳本（規劃中） |
-| 打包 | MSIX／sparse package | 取得通知監聽需要的套件身分 |
-
-### 目前的目錄結構
-
-```text
-Islet/
-├─ Islet.csproj        專案檔
-├─ App.xaml(.cs)       進入點
-├─ Shell/              島視窗、狀態切換、彈簧動畫、Win32 輔助
-├─ Services/           MediaService：讀取與控制 Windows 正在播放的媒體
-├─ ViewModels/         MainViewModel
-├─ Models/             通知、待辦、曲目資料
-└─ Themes/             Dark.xaml（色彩令牌）、Controls.xaml（控制項樣式）
-```
-
-色彩令牌集中在 `Themes/Dark.xaml`，新增淺色主題只需再放一份同鍵名的資源字典。
-
-### 規劃中的架構
-
-正式版會拆成四層，所有 Windows 專屬 API 都收在轉接層，模組之間透過事件匯流排溝通，核心邏輯不依賴 UI 或 Windows，方便測試：
-
-```text
-src/
-├─ Islet.App/                 WPF 視窗、系統匣、各分頁畫面
-├─ Islet.Core/                事件匯流排、模組宿主、模式管理、設定、儲存
-├─ Islet.Platform.Windows/    媒體、通知、視窗行為、音訊（Windows 轉接層）
-├─ Islet.Modules.*/           時鐘、音樂、通知、待辦
-├─ Islet.Scripting/           Jint 腳本宿主、腳本 API、manifest 驗證
-└─ Islet.Packaging/           MSIX 打包專案
-tests/                         單元測試
-samples/hello-card/            範例腳本
-```
-
----
-
-## 🧩 自訂腳本（規劃中）
-
-你可以用 JavaScript 替島加功能，例如顯示天氣卡片、每小時提醒喝水、換歌時自動記錄歌單。
-
-腳本放在 `%APPDATA%\Islet\extensions\<腳本 ID>\`，每個腳本包含：
-
-```text
-manifest.json   腳本資訊與權限宣告
-main.js         腳本本體
-```
-
-`manifest.json` 範例：
-
-```json
-{
-  "id": "com.example.hello-card",
-  "name": "Hello Card",
-  "version": "1.0.0",
-  "main": "main.js",
-  "permissions": ["network", "notifications.write"],
-  "triggers": ["interval:15m", "event:music.changed"]
-}
-```
-
-- **permissions**：腳本需要的能力，第一次載入時會列給你確認；沒列出的能力一律拒絕。
-- **triggers**：腳本何時被喚醒；沒有觸發時不佔資源。
-
-腳本能做的事：在島上新增卡片、訂閱事件（換歌、通知到達、模式切換、定時器）、發出島上通知、開啟連結或程式、儲存自己的設定。腳本在沙盒內執行，超過時間限制會被中止。
-
-> [!CAUTION]
-> 官方不審核社群腳本。只安裝你信任來源的腳本，並仔細看清楚它要求的權限。
-
----
-
-## 🔒 隱私
-
-- 通知內容 **只在你的電腦上處理**，不會上傳到任何伺服器。
-- 不收集使用統計、不需要登入帳號。
-- 使用者資料都存在 `%APPDATA%\Islet\`：
-
-```text
-%APPDATA%\Islet\
-├─ settings.json   一般設定
-├─ islet.db       待辦、通知歷史
-├─ themes\         自訂主題
-├─ modes\          自訂模式
-└─ extensions\     腳本
-```
-
----
-
-## 🗺️ 開發路線
-
-| 階段 | 內容 | 狀態 |
-| --- | --- | --- |
-| 0. 技術驗證 | 透明置頂膠囊視窗、彈簧動畫、打包後取得通知監聽授權 | 🚧 進行中 |
-| 1. MVP | 收合與展開、日期時間、音樂控制、全螢幕自動隱藏、系統匣、基本設定 | 🚧 進行中 |
-| 2. 通知與模式 | 通知列表與分組、勿擾、自訂模式 | 📋 |
-| 3. 待辦與提醒 | 待辦清單、到期提醒、資料存檔 | 📋 |
-| 4. 腳本系統 | manifest、權限確認、API、範例腳本、管理頁 | 📋 |
-| 5. 打磨與發佈 | 多螢幕與高 DPI、主題匯入、自動更新、安裝程式 | 📋 |
-| 之後 | 桌寵外觀模組、Python 等外部程序腳本 | 💭 |
-
-### 測試版已知限制
-
-- 尚未接通知監聽；通知與待辦重開即清空。
-- 未實作全螢幕自動隱藏、多螢幕選擇、系統匣。
-- 點擊展開的島會取走目前視窗焦點（否則待辦輸入框無法打字），正式版會改為輸入時才取得焦點。
-- 收合與提示狀態為點擊穿透，只有展開時才接收點擊。
-- 圖示使用 Windows 內建的 Segoe Fluent Icons／Segoe MDL2 Assets 字型。
-
----
-
-## 📦 打包成安裝檔（維護者）
-
-這一節是給專案維護者的發佈流程，目標是讓 **不懂電腦的人也能雙擊安裝**：不用裝 .NET、不用開終端機。
-
-### 發佈產物
-
-每個版本產出三樣東西，上傳到 GitHub Releases：
-
-| 產物 | 說明 |
+| 動作 | 效果 |
 | --- | --- |
-| `Islet-Setup-x.y.z.exe` | 安裝精靈，含開始功能表捷徑、開機自動啟動選項、解除安裝；會註冊套件身分，讓通知功能可用 |
-| `Islet-x.y.z-portable.zip` | 免安裝版，解壓即用（無通知功能） |
-| `SHA256SUMS.txt` | 以上檔案的校驗值 |
+| 滑鼠停在膠囊上 | 展開面板 |
+| 滑鼠移開 | 自動收合 |
+| 滾輪或下方圓點 | 切換分頁 |
+| 齒輪按鈕 | 開啟設定 |
+| 展開後按右鍵 | 勿擾、固定展開、模式、結束 |
 
-### 步驟 1：發佈成獨立執行檔
+第一次使用通知功能時，Windows 會詢問是否允許 Islet 讀取通知，按「允許」即可。所有通知內容都只在你的電腦上處理，不會上傳。
 
-使用 self-contained 發佈，把 .NET 執行環境一起打包，使用者電腦就不必另外安裝 .NET：
+完整的操作方式和常見問題請看[使用說明](docs/user-guide.md)。
 
-```powershell
-dotnet publish -c Release -r win-x64 `
-  --self-contained true `
-  -p:PublishSingleFile=true `
-  -p:IncludeNativeLibrariesForSelfExtract=true `
-  -p:Version=1.0.0 `
-  -o .\publish\win-x64
-```
+## 🛠️ 用什麼做的
 
-輸出在 `publish\win-x64\`，把這個資料夾壓縮就是免安裝版。
+- **C# + .NET 10**：主程式
+- **WPF**：透明、置頂的膠囊視窗和彈簧動畫
+- **Windows 內建 API**：讀取播放中的媒體（SMTC）、讀取系統通知、讀取效能計數器（PDH）
 
-> 發佈前建議在 `.csproj` 補上 `ApplicationIcon`、`Product`、`Company`、`Copyright` 等資訊，檔案總管的「內容」裡才會顯示正確名稱與圖示。
+技術細節和專案架構請看[開發指南](docs/development.md)。
 
-### 步驟 2：製作安裝精靈
+## 📚 文件
 
-兩種做法擇一（第一次發佈前定案）：
+所有詳細文件都在 [`docs/`](docs/README.md)：使用說明、開發指南、專案進度、設計文檔、打包發佈、參與貢獻、授權與開源規範。
 
-- **方案 A：MSIX 套件**（`Islet.Packaging` 專案）
-  原生取得套件身分，通知監聽直接可用，也能上架 Microsoft Store 與自動更新。缺點是側載安裝需要簽章，否則使用者裝不起來。
-- **方案 B：Inno Setup 安裝檔 + sparse package**
-  傳統 `Setup.exe` 體驗，對一般使用者最熟悉；安裝時註冊一個 sparse package 讓程式取得套件身分。sparse package 同樣需要簽章。
+## 📜 授權
 
-安裝檔應包含：
+本專案以 [MIT 授權](LICENSE) 釋出，© shubingx。
 
-- [ ] 預設安裝到 `%LOCALAPPDATA%\Programs\Islet`（不需要系統管理員權限）
-- [ ] 開始功能表捷徑，桌面捷徑為選項
-- [ ] 「開機時自動啟動」選項
-- [ ] 中文介面
-- [ ] 解除安裝時詢問是否一併刪除 `%APPDATA%\Islet\`
-- [ ] 升級安裝時保留使用者設定
-
-### 步驟 3：程式碼簽章
-
-未簽章的程式會觸發 SmartScreen 警告，大幅降低一般使用者的信任感；MSIX 與 sparse package 也需要簽章才能安裝。正式發佈前評估：
-
-- 開源專案的免費簽章計畫（例如 SignPath Foundation）
-- Azure Trusted Signing 等雲端簽章服務
-- 購買程式碼簽章憑證
-- 上架 Microsoft Store（由商店簽章）
-
-在取得簽章之前，README 的安裝步驟需保留「仍要執行」的說明。
-
-### 步驟 4：產生校驗值並發佈
-
-```powershell
-Get-FileHash .\dist\* -Algorithm SHA256 |
-  ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } |
-  Set-Content .\dist\SHA256SUMS.txt
-```
-
-1. 更新 `CHANGELOG.md`
-2. 建立 Git tag：`git tag v1.0.0 && git push origin v1.0.0`
-3. 在 GitHub 建立 Release，上傳三個檔案，貼上這版的變更摘要
-
-之後可改由 GitHub Actions 在推送 tag 時自動完成步驟 1–4，並評估加入 winget 與 Microsoft Store。
-
-### 發佈前檢查清單
-
-- [ ] 在乾淨的 Windows 10 與 Windows 11（沒裝 .NET）上安裝測試
-- [ ] 100%、125%、150% 縮放與多螢幕下版面正確
-- [ ] 通知授權流程可以順利完成
-- [ ] 解除安裝乾淨，升級後設定仍在
-- [ ] `THIRD-PARTY-NOTICES.md` 已更新
-
----
-
-## 🤝 參與貢獻
-
-非常歡迎任何形式的參與：回報問題、提出點子、改善文件、寫範例腳本、送 PR 都好！
-
-1. **回報問題或提建議**：到 [Issues](https://github.com/shubingx/Islet/issues) 開一則新的，附上 Windows 版本、重現步驟與截圖。
-2. **想改程式**：
-   1. Fork 本專案並建立分支：`git checkout -b feature/你的功能`
-   2. 修改並確認 `dotnet build` 沒有錯誤
-   3. 提交時寫清楚做了什麼：`git commit -m "新增：待辦到期提醒"`
-   4. 推送後開 Pull Request，說明改了什麼、為什麼
-3. **重大設計變更**（例如新模組、改架構）請先開 Issue 或 Discussion 討論，避免做完才發現方向不同。
-4. 新手可以從標記 `good first issue` 的 Issue 開始。
-
-**協作規則**
-
-- `main` 分支隨時保持可發佈狀態；功能在分支開發，透過 PR 合併。
-- PR 需通過 CI（GitHub Actions 在 Windows 上自動建置與測試）才能合併。
-- 程式風格遵循 `.editorconfig` 與 .NET 慣例；Windows 專屬 API 一律放在轉接層。
-- 參考其他專案時只參考設計，**不要直接複製程式碼**，以免授權衝突（例如部分同類專案採 GPL-3.0，與本專案授權不相容）。
-
-詳細的開發環境與流程請見 [`CONTRIBUTING.md`](CONTRIBUTING.md)（待補）。
-
----
-
-## 📜 授權與開源規範
-
-### 授權
-
-> [!IMPORTANT]
-> **授權尚未定案。** 在 `LICENSE` 檔案加入之前，依著作權法本專案預設為「保留所有權利」，他人不能合法使用或修改程式碼。正式公開前會加入 `LICENSE`。
-
-目前規劃：
-
-| 範圍 | 預計授權 |
-| --- | --- |
-| 主程式 | Apache-2.0（或 MIT） |
-| 範例腳本、腳本 API 文件 | MIT，讓社群可以自由改寫 |
-
-貢獻者提交的程式碼，將以與本專案相同的授權釋出。
-
-### 第三方套件
-
-- 所有相依套件與其授權列在 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)（待補）。
-- 新增相依套件前需確認授權相容；**不得引入 GPL 類授權的套件**，否則整個專案必須跟著改用 GPL。
-
-### 商標與名稱
-
-- 「Dynamic Island／動態島」是 Apple 的產品名稱，本專案與 Apple 無任何關係。
-- Spotify、YouTube、LINE、Discord、Instagram 等名稱與商標屬於各自的擁有者，本專案僅透過 Windows 公開 API 讀取它們的播放狀態與系統通知，未與這些公司合作，也不使用非官方方式存取其服務。
-
-### 行為準則
-
-參與本專案的每個人都應互相尊重、友善溝通。詳見 [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)（待補，預計採用 Contributor Covenant）。
-
-### 安全性問題
-
-發現安全漏洞（特別是腳本沙盒、通知資料外洩相關）**請不要公開開 Issue**，請依 [`SECURITY.md`](SECURITY.md)（待補）的方式私下回報，或使用 GitHub 的 [Private vulnerability reporting](https://github.com/shubingx/Islet/security/advisories/new)。
-
-### 公開前倉庫檔案清單
-
-- [x] `README.md`
-- [ ] `LICENSE`
-- [ ] `CONTRIBUTING.md`
-- [ ] `CODE_OF_CONDUCT.md`
-- [ ] `SECURITY.md`
-- [ ] `CHANGELOG.md`
-- [ ] `THIRD-PARTY-NOTICES.md`
-- [ ] `.github/`：Issue 與 PR 範本、CI 設定
+「Dynamic Island／動態島」是 Apple 的產品名稱，Spotify、YouTube、LINE、Discord、Instagram 等名稱與商標屬於各自的擁有者，本專案與這些公司都沒有關係。
 
 ---
 
