@@ -4,7 +4,7 @@
 
 本專案以 [MIT 授權](../LICENSE) 釋出，© shubingx。範例腳本與腳本 API 文件同樣採 MIT，讓社群可以自由改寫。
 
-> `Assets/AppIcons/` 裡的社群 App 標誌屬於各公司的商標，不在 MIT 授權範圍內。
+> 例外：專案附帶的 `Assets/AppIcons/` 社群 App 標誌（Instagram、Facebook、X、LINE、Telegram、Discord）屬於各公司的商標，不在 MIT 授權範圍內，僅用來在通知旁標示來源 App。
 
 貢獻者提交的程式碼，將以與本專案相同的授權釋出。
 
@@ -16,7 +16,8 @@
 ## 商標與名稱
 
 - 「Dynamic Island／動態島」是 Apple 的產品名稱，本專案與 Apple 無任何關係。
-- Spotify、YouTube、LINE、Discord、Instagram 等名稱與商標屬於各自的擁有者，本專案僅透過 Windows 公開 API 讀取它們的播放狀態與系統通知，未與這些公司合作，也不使用非官方方式存取其服務。
+- Spotify、YouTube、LINE、Discord、Instagram、Facebook、X、Telegram 等名稱與商標屬於各自的擁有者，本專案僅透過 Windows 公開 API 讀取它們的播放狀態與系統通知，未與這些公司合作，也不使用非官方方式存取其服務。
+- 專案附帶這些 App 的標誌（`Assets/AppIcons/`），只為了在通知旁標示訊息來源；為了配合介面，圖示經過裁成圓形與縮放處理。
 
 ## 行為準則
 
