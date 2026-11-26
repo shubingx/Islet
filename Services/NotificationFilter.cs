@@ -23,7 +23,7 @@ public static class NotificationFilter
     /// </summary>
     private static readonly string[] SocialSites =
     {
-        "instagram.com", "facebook.com",
+        "instagram.com", "facebook.com", "x.com", "twitter.com", "telegram.org",
     };
 
     private static readonly string[] Browsers =

@@ -221,15 +221,20 @@ public sealed class NotificationService : IDisposable
         Log($"toast #{n.Id} app='{appName}' aumid='{aumid}' browser={fromBrowser} site='{site}' texts={rawTexts} -> {(allowed ? "SHOWN" : "filtered")}");
         if (!allowed) return null;
 
-        ImageSource? icon = null;
+        // Web notifications: show "Instagram", not "Google Chrome"; the browser's icon would mislead.
+        bool viaBrowser = true;
         if (site.Length > 0)
-            appName = SiteName(site);   // show "Instagram", not "Google Chrome"; browser icon would mislead
+            appName = SiteName(site);
         else if (fromBrowser && NotificationFilter.SocialSiteIn(title + "\n" + body) is { } host)
             appName = SiteName(host);
         else if (fromBrowser && NotificationFilter.SocialBrandIn(title + "\n" + body) is { } brand)
             appName = brand;
-        else if (display is not null)
-            icon = await LoadIconAsync(display, aumid.Length > 0 ? aumid : appName);
+        else
+            viaBrowser = false;
+
+        // An icon shipped with Islet (Assets\AppIcons) wins; otherwise the installed app's own icon.
+        ImageSource? icon = AppIcons.Bundled(appName)
+            ?? (viaBrowser ? null : await GetAppIconAsync(display, aumid, appName));
 
         if (title.Length == 0) title = appName;
 
@@ -263,11 +268,31 @@ public sealed class NotificationService : IDisposable
         };
     }
 
-    private async Task<ImageSource?> LoadIconAsync(global::Windows.ApplicationModel.AppDisplayInfo display, string key)
+    /// <summary>
+    /// The installed app's real icon. Store apps hand theirs over through AppDisplayInfo; classic
+    /// desktop apps (Discord, LINE, ...) usually don't, so we also ask the shell for the icon the
+    /// Start menu shows for the AUMID. Null means the letter badge.
+    /// </summary>
+    private async Task<ImageSource?> GetAppIconAsync(
+        global::Windows.ApplicationModel.AppDisplayInfo? display, string aumid, string appName)
     {
+        string key = aumid.Length > 0 ? aumid : appName;
         if (_iconCache.TryGetValue(key, out var cached)) return cached;
 
+        // Packaged AUMIDs look like "Family_hash!App"; anything else is a desktop app.
+        bool packaged = aumid.Contains('!');
         ImageSource? result = null;
+        if (packaged && display is not null) result = await LoadLogoAsync(display);
+        result ??= AppIcons.FromShell(aumid, 64);
+        if (result is null && !packaged && display is not null) result = await LoadLogoAsync(display);
+
+        Log($"icon for '{key}': {(result is null ? "none -> letter badge" : "ok")}");
+        _iconCache[key] = result;
+        return result;
+    }
+
+    private static async Task<ImageSource?> LoadLogoAsync(global::Windows.ApplicationModel.AppDisplayInfo display)
+    {
         try
         {
             var logo = display.GetLogo(new global::Windows.Foundation.Size(64, 64));
@@ -275,6 +300,7 @@ public sealed class NotificationService : IDisposable
             using var input = ras.AsStreamForRead();
             var ms = new MemoryStream();
             await input.CopyToAsync(ms);
+            if (ms.Length == 0) return null;
             ms.Position = 0;
 
             var bmp = new BitmapImage();
@@ -284,15 +310,12 @@ public sealed class NotificationService : IDisposable
             bmp.StreamSource = ms;
             bmp.EndInit();
             bmp.Freeze();
-            result = bmp;
+            return bmp;
         }
         catch (Exception)
         {
-            result = null; // fall back to the letter badge
+            return null;
         }
-
-        _iconCache[key] = result;
-        return result;
     }
 
     private static (string Badge, Brush Brush) BadgeFor(string appName, string aumid)
@@ -302,6 +325,8 @@ public sealed class NotificationService : IDisposable
             s.Contains("line") ? Color.FromRgb(0x06, 0xC7, 0x55) :
             s.Contains("discord") ? Color.FromRgb(0x58, 0x65, 0xF2) :
             s.Contains("instagram") ? Color.FromRgb(0xE1, 0x30, 0x6C) :
+            s.Contains("facebook") ? Color.FromRgb(0x08, 0x66, 0xFF) :
+            appName == "X" ? Color.FromRgb(0x20, 0x20, 0x20) :
             s.Contains("messenger") ? Color.FromRgb(0x00, 0x84, 0xFF) :
             s.Contains("telegram") ? Color.FromRgb(0x29, 0xA9, 0xEB) :
             s.Contains("whatsapp") ? Color.FromRgb(0x25, 0xD3, 0x66) :
