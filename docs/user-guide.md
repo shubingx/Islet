@@ -111,7 +111,7 @@ IG 沒有官方的 Windows 桌面通知，只能依靠瀏覽器通知，因此�
 <details>
 <summary><b>IG／FB 通知顯示字母而不是圖示？</b></summary>
 
-Islet 已經附上 IG、FB、X 等社群 App 的圖示，正常情況下會直接顯示。如果還是看到字母，請確認 `Islet.exe` 旁邊有 `Assets\AppIcons\` 資料夾，而且裡面有 `instagram.png`、`facebook.png` 等圖檔；自己從原始碼 build 的話，重新 build 一次即可。詳見 [`Assets/AppIcons/README.md`](../Assets/AppIcons/README.md)。
+Islet 已經把 IG、FB、X 等社群 App 的圖示編譯在 `Islet.exe` 裡，正常情況下會直接顯示。如果還是看到字母，請確認用的是最新版本；自己從原始碼 build 的話，確認 `Assets/AppIcons/` 裡有 `instagram.png`、`facebook.png` 等圖檔，再重新 build 一次。詳見 [`Assets/AppIcons/README.md`](../Assets/AppIcons/README.md)。
 </details>
 
 ## 隱私

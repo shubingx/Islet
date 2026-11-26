@@ -18,8 +18,9 @@
 
   <ItemGroup>
     <!-- Notification icons for apps without a usable icon of their own (e.g. web Instagram).
-         Copied next to Islet.exe; name each file after the app, e.g. instagram.png. -->
-    <Content Include="Assets\AppIcons\*.png" CopyToOutputDirectory="PreserveNewest" />
+         Compiled into Islet.exe; name each file after the app, e.g. instagram.png.
+         A same-named file in Assets\AppIcons\ next to Islet.exe overrides it. -->
+    <Resource Include="Assets\AppIcons\*.png" />
   </ItemGroup>
 
 </Project>

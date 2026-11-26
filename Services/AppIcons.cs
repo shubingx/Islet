@@ -20,8 +20,9 @@ internal static class AppIcons
     };
 
     /// <summary>
-    /// An icon shipped with Islet: Assets\AppIcons\&lt;app&gt;.png next to Islet.exe, where &lt;app&gt;
-    /// is the app name in lower case without spaces ("Instagram" → instagram.png). Null if none.
+    /// An icon shipped with Islet for an app name, lower-cased without spaces ("Instagram" → instagram.png).
+    /// A file in Assets\AppIcons\ next to Islet.exe wins, so users can swap an icon without rebuilding;
+    /// otherwise the copy compiled into Islet.exe is used. Null if neither exists.
     /// </summary>
     public static ImageSource? Bundled(string appName)
     {
@@ -29,32 +30,62 @@ internal static class AppIcons
         if (key.Length == 0) return null;
         if (BundledCache.TryGetValue(key, out var cached)) return cached;
 
+        var names = new List<string> { key };
+        if (Brands.FirstOrDefault(b => key.StartsWith(b)) is { } brand)
+            names.Add(brand == "twitter" ? "x" : brand);
+
         ImageSource? result = null;
-        string dir = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcons");
-        string path = Path.Combine(dir, key + ".png");
-        if (!File.Exists(path) && Brands.FirstOrDefault(b => key.StartsWith(b)) is { } brand)
-            path = Path.Combine(dir, (brand == "twitter" ? "x" : brand) + ".png");
-        if (File.Exists(path))
+        foreach (string name in names.Distinct())
         {
-            try
-            {
-                var bmp = new BitmapImage();
-                bmp.BeginInit();
-                bmp.CacheOption = BitmapCacheOption.OnLoad;   // don't keep the file locked
-                bmp.DecodePixelWidth = 56;
-                bmp.UriSource = new Uri(path);
-                bmp.EndInit();
-                bmp.Freeze();
-                result = bmp;
-            }
-            catch (Exception)
-            {
-                result = null; // unreadable file → fall through to the other sources
-            }
+            result = FromFile(name) ?? FromResource(name);
+            if (result != null) break;
         }
 
         BundledCache[key] = result;
         return result;
+    }
+
+    private static ImageSource? FromFile(string name)
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcons", name + ".png");
+        if (!File.Exists(path)) return null;
+        try
+        {
+            using var stream = File.OpenRead(path);   // don't keep the file locked
+            return Decode(stream);
+        }
+        catch (Exception)
+        {
+            return null; // unreadable file → fall back to the compiled-in icon
+        }
+    }
+
+    private static ImageSource? FromResource(string name)
+    {
+        try
+        {
+            var info = System.Windows.Application.GetResourceStream(
+                new Uri($"/Assets/AppIcons/{name}.png", UriKind.Relative));
+            if (info == null) return null;
+            using var stream = info.Stream;
+            return Decode(stream);
+        }
+        catch (IOException)
+        {
+            return null; // no compiled-in icon with that name
+        }
+    }
+
+    private static ImageSource Decode(Stream stream)
+    {
+        var bmp = new BitmapImage();
+        bmp.BeginInit();
+        bmp.CacheOption = BitmapCacheOption.OnLoad;
+        bmp.DecodePixelWidth = 56;
+        bmp.StreamSource = stream;
+        bmp.EndInit();
+        bmp.Freeze();
+        return bmp;
     }
 
     /// <summary>
